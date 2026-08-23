@@ -17,7 +17,6 @@ export const StudentController = {
     res.status(200).json(student);
   },
 
-  // DELETE = désactivation (RG-10), jamais de suppression physique.
   async deactivate(req: Request, res: Response) {
     const student = await StudentService.deactivate(req.params.id);
     res.status(200).json(student);

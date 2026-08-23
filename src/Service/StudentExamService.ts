@@ -49,7 +49,6 @@ export const StudentExamService = {
     const choices = await ChoiceRepository.findByQuestionIds(questions.map((q) => q.id));
 
     if (attempt && attempt.submitted_at) {
-      // Déjà passé : on renvoie la correction complète.
       const answers = await AnswerRepository.findByAttemptId(attempt.id);
       const answersByQuestion = new Map(answers.map((a) => [a.question_id, a.choice_id]));
 
@@ -70,8 +69,6 @@ export const StudentExamService = {
       };
     }
 
-    // Pas encore passé : la fenêtre doit être ouverte pour pouvoir
-    // consulter/répondre à l'examen (RG-03).
     const now = new Date();
     if (now < exam.opens_at || now > exam.closes_at) {
       throw new ForbiddenError("Cet examen n'est pas disponible en dehors de sa fenêtre.");
@@ -89,22 +86,17 @@ export const StudentExamService = {
     };
   },
 
-  // POST /api/my/exams/:id/submit
   async submit(studentId: string, examId: string, answers: SubmitAnswerInput[]) {
     const exam = await ExamRepository.findById(examId);
     if (!exam) {
       throw new NotFoundError("Examen introuvable.");
     }
 
-    // RG-03 : soumission possible uniquement pendant la fenêtre.
     const now = new Date();
     if (now < exam.opens_at || now > exam.closes_at) {
       throw new ForbiddenError("La fenêtre de soumission de cet examen est fermée.");
     }
 
-    // RG-02 : un étudiant ne peut passer un examen qu'une seule fois.
-    // Vérification serveur ; la contrainte UNIQUE en base est le
-    // filet de sécurité en cas de double soumission concurrente.
     const existingAttempt = await AttemptRepository.findByStudentAndExam(studentId, examId);
     if (existingAttempt) {
       throw new ConflictError("Vous avez déjà passé cet examen.");
@@ -117,8 +109,6 @@ export const StudentExamService = {
     const questions = await QuestionRepository.findByExamId(examId);
     const choices = await ChoiceRepository.findByQuestionIds(questions.map((q) => q.id));
 
-    // On ne fait confiance à rien de ce qu'envoie le client au-delà
-    // des identifiants de choix sélectionnés (RG-06).
     const answerByQuestionId = new Map<string, string | null>();
     for (const a of answers) {
       if (!a.questionId) continue;
@@ -126,9 +116,6 @@ export const StudentExamService = {
     }
 
     return withTransaction(async (client) => {
-      // La contrainte UNIQUE(student_id, exam_id) fait échouer cet
-      // INSERT si une tentative existe déjà (double soumission
-      // concurrente), ce qui referme la fenêtre de course RG-02.
       let attempt;
       try {
         const result = await client.query(
@@ -143,9 +130,6 @@ export const StudentExamService = {
       let totalScore = 0;
       const correction = [];
 
-      // RG-05 : une question sans réponse vaut 0, soumission partielle
-      // autorisée -> on itère sur TOUTES les questions de l'examen,
-      // pas seulement sur celles présentes dans le payload du client.
       for (const question of questions) {
         const selectedChoiceId = answerByQuestionId.get(question.id) ?? null;
         const questionChoices = choices.filter((c) => c.question_id === question.id);
@@ -155,9 +139,6 @@ export const StudentExamService = {
           ? questionChoices.find((c) => c.id === selectedChoiceId) ?? null
           : null;
 
-        // Un choiceId qui ne correspond pas à une des options de la
-        // question est ignoré (traité comme une non-réponse) plutôt
-        // que de faire planter toute la soumission.
         const validChoiceId = selectedChoice ? selectedChoice.id : null;
 
         await AnswerRepository.create(
@@ -187,7 +168,6 @@ export const StudentExamService = {
       );
       const finalAttempt = updateResult.rows[0];
 
-      // RG-12 : l'étudiant voit immédiatement sa note et la correction.
       return {
         score: Number(finalAttempt.score),
         submittedAt: finalAttempt.submitted_at,
@@ -196,7 +176,6 @@ export const StudentExamService = {
     });
   },
 
-  // GET /api/my/results — historique des résultats de l'étudiant.
   async history(studentId: string) {
     const attempts = await AttemptRepository.findByStudentId(studentId);
     const examIds = attempts.map((a) => a.exam_id);

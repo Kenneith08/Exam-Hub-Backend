@@ -131,8 +131,6 @@ export const QuestionService = {
 
       let finalChoices: Choice[];
       if (choices) {
-        // Les choix sont imbriqués dans la question : on remplace la
-        // liste complète plutôt que de diffuser un patch partiel.
         await ChoiceRepository.deleteByQuestionId(questionId, client);
         finalChoices = [];
         for (let i = 0; i < choices.length; i++) {

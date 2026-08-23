@@ -10,8 +10,5 @@ export function signToken(payload: JwtPayload): string {
 }
 
 export function verifyToken(token: string): JwtPayload {
-  // Laisse volontairement remonter l'exception si le token est
-  // invalide/expiré : c'est authMiddleware qui décide comment la
-  // traduire en erreur HTTP (401).
   return jwt.verify(token, env.jwt.secret) as JwtPayload;
 }

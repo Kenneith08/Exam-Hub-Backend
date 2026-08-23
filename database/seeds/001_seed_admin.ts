@@ -1,9 +1,10 @@
 import { pool } from "../../src/config/database";
 import { env } from "../../src/config/env";
 import { hashPassword } from "../../src/Security/hash";
+//Ici y'a pas vraiment besoin de checker tout baigne sauf que vous devez modifier le .env vu comme dans 
+// Le modèle .env.example 
+// Ps: oubliez pas de me rappeler de refactor ici vers la fin du delai accordé c'est pas presentable au prof ces coms 
 
-// RG-01 : pas d'auto-inscription, le premier compte admin est créé
-// par ce script. Idempotent : ne recrée pas l'admin s'il existe déjà.
 async function main() {
   const existing = await pool.query("SELECT id FROM users WHERE email = $1", [
     env.seed.adminEmail,

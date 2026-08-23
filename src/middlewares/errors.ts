@@ -1,8 +1,3 @@
-// Hiérarchie d'erreurs applicatives. Chaque Service/Controller lève
-// une de ces erreurs ; le middleware d'erreur central (errorHandler.ts)
-// se charge de les transformer en { message: "..." } + code HTTP,
-// conformément à RG-13.
-
 export class AppError extends Error {
   public readonly statusCode: number;
 

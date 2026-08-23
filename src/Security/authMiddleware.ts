@@ -2,9 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { UnauthorizedError } from "../middlewares/errors";
 import { verifyToken } from "./jwt";
 
-// Vérifie l'en-tête `Authorization: Bearer <token>`, décode le JWT
-// et attache { sub, role } à req.user pour les middlewares/controllers
-// suivants. À monter sur toute route protégée.
+
 export function requireAuth(req: Request, _res: Response, next: NextFunction) {
   const header = req.headers.authorization;
 

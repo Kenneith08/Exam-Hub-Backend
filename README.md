@@ -1,27 +1,88 @@
-Bon je sais pas si vous savez mais faut copier le contenu de .env.example dans .env dans lequel vous allez completer 
-Les champs necessaires pour que tout baigne 
+# Guide d'installation — Exam Hub
 
-Faites npm install pour installer les dependances /node_modules (chais pas vraiment si c'est necessaires mais bon)
+Ce guide décrit les étapes nécessaires pour installer et lancer le projet en local.
 
-! Oubliez pas de creer la base de donnees !
+## Prérequis
 
-Pour ça vous devez etre dans la racine du projet (si vous avez deja ouvert le teminal dans votre IDE tapez la cmd suivante)  : psql -U postgres -d exam_hub -f database/migrations/001_init_schema.sql
+- Node.js et npm installés
+- PostgreSQL installé et accessible (utilisateur `postgres`)
+- Un terminal ouvert à la **racine du projet**
 
-Une fois fait vous allez taper " npm run seed " et ensuite vous devriez voir un truc du genre Admin cree avec son email et mdp
+## 1. Configuration de l'environnement
 
-Toujours dans le termianl vous tapez " npm run dev " et il devrait pas y avoire d'erreur 
+Copiez le fichier d'exemple et complétez les variables nécessaires :
 
-Puis vous basculez vers un autre (si vous avez la flemme d'ouvrir un nav ou Postman) et vous tapez :
+```bash
+cp .env.example .env
+```
 
-" curl http://localhost:3000/health "
+Ouvrez ensuite `.env` et remplissez tous les champs requis (base de données, port, secrets, etc.).
 
-Le resultat sera long mais normalement il devrait y avoir un code de status 200 
-Si vous l'avez pas assurez vous que le projet est à jour pour vous ( git pull ) parce que j'ai déjà testé et le mien marche 
+### Générer le `JWT_SECRET`
 
+Dans le terminal, exécutez :
 
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
 
-Et pour le JWT secret vous faites ça dans le terminal   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-Et la valeur que vous aurez c'est ça que vous mettez dessus 
+Copiez la valeur générée et collez-la comme valeur de `JWT_SECRET` dans `.env`.
 
+## 2. Installation des dépendances
 
-Franchement faudra formaliser tout ça mais flemme les mecs...
+À la racine du projet :
+
+```bash
+npm install
+```
+
+## 3. Création de la base de données
+
+Toujours à la racine du projet, exécutez le script de migration :
+
+```bash
+psql -U postgres -d exam_hub -f database/migrations/001_init_schema.sql
+```
+
+> Assurez-vous que la base `exam_hub` existe déjà dans PostgreSQL avant de lancer cette commande, sinon créez-la au préalable.
+
+## 4. Seed de la base de données
+
+```bash
+npm run seed
+```
+
+Un message de confirmation doit s'afficher, du type : *« Admin créé »* avec l'email et le mot de passe de l'administrateur généré. Notez ces identifiants.
+
+## 5. Lancement du serveur
+
+```bash
+npm run dev
+```
+
+Le serveur doit démarrer sans erreur.
+
+## 6. Vérification
+
+Dans un **second terminal** (ou via Postman / navigateur), testez la route de santé :
+
+```bash
+curl http://localhost:3000/health
+```
+
+Vous devriez obtenir une réponse avec un code de statut **200**.
+
+### En cas de problème
+
+Si le statut n'est pas 200 :
+
+1. Vérifiez que votre projet est à jour :
+   ```bash
+   git pull
+   ```
+2. Relancez `npm install` si des dépendances ont changé.
+3. Vérifiez que toutes les variables du `.env` sont correctement renseignées.
+
+---
+
+*Une installation fonctionnelle a déjà été testée avec succès par l'auteur de ce projet.*

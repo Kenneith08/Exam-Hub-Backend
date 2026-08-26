@@ -8,8 +8,6 @@ const router = Router();
 
 router.use(requireAuth, requireRole("admin"));
 
-// Les choix sont imbriqués dans la question : PUT remplace la
-// question ET sa liste de choix en une seule fois.
 router.put("/:id", asyncHandler(QuestionController.update));
 router.delete("/:id", asyncHandler(QuestionController.remove));
 

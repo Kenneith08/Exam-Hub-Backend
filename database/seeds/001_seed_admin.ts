@@ -1,9 +1,6 @@
 import { pool } from "../../src/config/database";
 import { env } from "../../src/config/env";
 import { hashPassword } from "../../src/Security/hash";
-//Ici y'a pas vraiment besoin de checker tout baigne sauf que vous devez modifier le .env vu comme dans 
-// Le modèle .env.example 
-// Ps: oubliez pas de me rappeler de refactor ici vers la fin du delai accordé c'est pas presentable au prof ces coms 
 
 async function main() {
   const existing = await pool.query("SELECT id FROM users WHERE email = $1", [

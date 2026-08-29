@@ -32,7 +32,7 @@ export const StudentService = {
 
   async update(
     id: string,
-    data: Partial<{ name: string; email: string; password: string }>
+    data: Partial<{ name: string; email: string; password: string; isActive: boolean }>
   ): Promise<PublicUser> {
     const student = await UserRepository.findById(id);
     if (!student || student.role !== "student") {
@@ -52,9 +52,18 @@ export const StudentService = {
       name: data.name,
       email: data.email,
       passwordHash,
+      isActive: data.isActive,
     });
 
     return toPublicUser(updated!);
+  },
+
+  // Sur ce projet, seules les routes PUT/DELETE /api/students/:id sont
+  // imposées par le sujet (pas de route dédiée à la réactivation) :
+  // réactiver un compte se fait donc via ce même PUT, avec
+  // { isActive: true } dans le corps de la requête.
+  async reactivate(id: string): Promise<PublicUser> {
+    return this.update(id, { isActive: true });
   },
 
   async deactivate(id: string): Promise<PublicUser> {
